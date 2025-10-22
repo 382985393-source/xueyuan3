@@ -1,0 +1,35 @@
+name: Extract and package chengpin
+on:
+  workflow_dispatch: {}
+
+jobs:
+  extract_and_package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip tar
+
+      - name: Unzip chengpin archive
+        run: |
+          mkdir -p workdir
+          unzip -q "chengpin (4).zip" -d workdir
+
+      - name: Create cleaned tar excluding node_modules and .git
+        run: |
+          if [ -d "workdir/chengpin" ]; then
+            cd workdir/chengpin
+            tar --exclude='./node_modules' --exclude='./.git' -czf ../../chengpin_src.tar.gz .
+          else
+            echo "Expected directory workdir/chengpin not found" && exit 1
+          fi
+
+      - name: Upload cleaned archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: chengpin_src
+          path: chengpin_src.tar.gz
